@@ -4,10 +4,7 @@ import { auth, db } from "../api/firebaseadmin.js";
 
 const router = express.Router();
 
-/**
- * POST /auth/signup
- * Create user with Firebase Admin SDK and store profile in Firestore
- */
+
 router.post("/auth/signup", async (req, res) => {
   const { name, email, password, phone } = req.body;
 
@@ -15,7 +12,7 @@ router.post("/auth/signup", async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
 
   try {
-    // ✅ Create user in Firebase Auth
+    // create user in Firebase Auth
     const userRecord = await auth.createUser({
       email,
       password,
@@ -23,7 +20,7 @@ router.post("/auth/signup", async (req, res) => {
       phoneNumber: phone || undefined,
     });
 
-    // ✅ Optionally store profile in Firestore
+    //Optionally store profile in Firestore
     await db.collection("users").doc(userRecord.uid).set({
       name,
       email,
@@ -31,9 +28,8 @@ router.post("/auth/signup", async (req, res) => {
       createdAt: new Date().toISOString(),
     });
 
-    // ✅ Send email verification link (optional)
+    //Send email verification link (optional)
     const link = await auth.generateEmailVerificationLink(email);
-    // You could email this link to the user via SendGrid/Mailgun/etc.
 
     res
       .status(201)

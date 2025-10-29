@@ -10,10 +10,6 @@ if (!FIREBASE_API_KEY) {
   console.error("WARNING: FIREBASE_API_KEY is not set in environment variables");
 }
 
-/**
- * POST /auth/signup
- * Create user with Firebase Admin SDK and store profile in Firestore
- */
 router.post("/auth/signup", async (req, res) => {
   console.log("Signup request received:", { ...req.body, password: "[REDACTED]" });
   
@@ -53,10 +49,6 @@ router.post("/auth/signup", async (req, res) => {
   }
 });
 
-/**
- * POST /auth/login
- * Email/Password Login
- */
 router.post("/auth/login", async (req, res) => {
   console.log("Login request received for:", req.body.email);
   
@@ -90,7 +82,7 @@ router.post("/auth/login", async (req, res) => {
     const idToken = data.idToken;
     const decodedToken = await auth.verifyIdToken(idToken);
 
-    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days in milliseconds
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
 
     try {
       const sessionCookie = await auth.createSessionCookie(idToken, { 
@@ -116,11 +108,11 @@ router.post("/auth/login", async (req, res) => {
           uid: decodedToken.uid,
           email: decodedToken.email,
           displayName: decodedToken.name
-        }
+        },
+        idToken,
       });
     } catch (cookieError) {
       console.error("Session cookie creation error:", cookieError.message);
-      // If session cookie fails, still return success but without cookie
       res.status(200).json({ 
         message: "Login successful (session creation failed)", 
         user: {
@@ -137,10 +129,7 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-/**
- * POST /auth/google-login
- * Google OAuth Login
- */
+
 router.post("/auth/google-login", async (req, res) => {
   console.log("Google login request received");
   
@@ -156,13 +145,7 @@ router.post("/auth/google-login", async (req, res) => {
     const decodedToken = await auth.verifyIdToken(idToken);
     
     console.log("Google token verified for:", decodedToken.email);
-    console.log("Token claims:", {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      email_verified: decodedToken.email_verified
-    });
     
-    // Check if user exists in Firestore
     const userDoc = await db.collection("users").doc(decodedToken.uid).get();
     
     if (!userDoc.exists) {
@@ -181,7 +164,7 @@ router.post("/auth/google-login", async (req, res) => {
       console.log("Existing Google user updated:", decodedToken.uid);
     }
 
-    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days in milliseconds
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
 
     try {
       console.log("Creating session cookie...");
@@ -209,11 +192,8 @@ router.post("/auth/google-login", async (req, res) => {
         }
       });
     } catch (cookieError) {
-      console.error("Session cookie creation error:");
-      console.error("Error code:", cookieError.code);
-      console.error("Error message:", cookieError.message);
+      console.error("Session cookie creation error:", cookieError.code, cookieError.message);
       
-      // Return success anyway - session cookies are optional
       res.status(200).json({ 
         message: "Login successful (session creation skipped)",
         user: {
@@ -225,10 +205,7 @@ router.post("/auth/google-login", async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Google login error:");
-    console.error("Error code:", error.code);
-    console.error("Error message:", error.message);
-    console.error("Full error:", error);
+    console.error("Google login error:", error.code, error.message);
     
     res.status(401).json({ 
       error: error.message,
@@ -237,10 +214,7 @@ router.post("/auth/google-login", async (req, res) => {
   }
 });
 
-/**
- * GET /auth/profile
- * Get user profile (secured route)
- */
+
 router.get("/auth/profile", async (req, res) => {
   const sessionCookie = req.cookies.session || "";
   
@@ -262,19 +236,13 @@ router.get("/auth/profile", async (req, res) => {
   }
 });
 
-/**
- * POST /auth/logout
- * Logout user
- */
+
 router.post("/auth/logout", async (req, res) => {
   res.clearCookie("session");
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-/**
- * GET /auth/test
- * Test endpoint to verify routes are working
- */
+
 router.get("/auth/test", (req, res) => {
   res.json({ 
     message: "Auth routes are working",

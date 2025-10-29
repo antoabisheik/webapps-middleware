@@ -34,7 +34,7 @@ else {
     serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
     console.log("Using Firebase Admin credentials from serviceAccountKey.json");
   } catch (error) {
-    console.error("\n❌ ERROR: Firebase Admin SDK cannot be initialized!");
+    console.error("\nERROR: Firebase Admin SDK cannot be initialized!");
     console.error("You need to provide credentials using one of these methods:\n");
     console.error("Method 1: Service Account Key File");
     console.error("  1. Download from Firebase Console → Project Settings → Service Accounts");
@@ -54,9 +54,9 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-    console.log("✅ Firebase Admin SDK initialized successfully\n");
+    console.log("Firebase Admin SDK initialized successfully\n");
   } catch (error) {
-    console.error("❌ ERROR: Failed to initialize Firebase Admin SDK");
+    console.error("ERROR: Failed to initialize Firebase Admin SDK");
     console.error("Error message:", error.message);
     console.error("\nPlease check your credentials and try again.\n");
     process.exit(1);
